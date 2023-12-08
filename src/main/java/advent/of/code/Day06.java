@@ -1,65 +1,62 @@
 package advent.of.code;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.Arrays;
-import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class Day06 {
-//    long[] times = Arrays.stream(reader.readLine().split(" +")).skip(1).mapToLong(Long::parseLong).toArray();
-//    long[] records = Arrays.stream(reader.readLine().split(" +")).skip(1).mapToLong(Long::parseLong).toArray();
-//
-//    long time = Long.parseLong(Arrays.stream(reader.readLine().split(" +")).skip(1).collect(Collectors.joining()));
-//    long record = Long.parseLong(Arrays.stream(reader.readLine().split(" +")).skip(1).collect(Collectors.joining()));
-    
-    void main() {
-        part2();
+    void main() throws IOException {
+        try (var reader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("/day06.txt")))) {
+            part2(reader);
+        }
     }
     
-    void part1() {
-        Map<Integer, Integer> recordDistanceByTime = Map.of(
-            44, 277,
-            89, 1136,
-            96, 1890,
-            91, 1768
-        );
+    void part1(BufferedReader reader) throws IOException {
+        long[] times = Arrays.stream(reader.readLine().split(" +")).skip(1).mapToLong(Long::parseLong).toArray();
+        long[] records = Arrays.stream(reader.readLine().split(" +")).skip(1).mapToLong(Long::parseLong).toArray();
         
-        long product = recordDistanceByTime.entrySet().stream()
-            .mapToLong(e -> getNumberOfWaysToWin2(e.getKey(), e.getValue()))
+        long product = IntStream.range(0, times.length)
+            .mapToLong(i -> getNumberOfWaysToWin2(times[i], records[i]))
             .reduce(1L, (i, j) -> i * j);
         
         System.out.println(product);
     }
     
-    void part2() {
-        long time = 44_89_96_91L;
-        long recordDistance = 277_1136_1890_1768L;
+    void part2(BufferedReader reader) throws IOException {
+        long time = Long.parseLong(Arrays.stream(reader.readLine().split(" +")).skip(1).collect(Collectors.joining()));
+        long record = Long.parseLong(Arrays.stream(reader.readLine().split(" +")).skip(1).collect(Collectors.joining()));
         
-        long ways = getNumberOfWaysToWin2(time, recordDistance);
+        long ways = getNumberOfWaysToWin2(time, record);
         
         System.out.println(ways);
     }
     
-    int getNumberOfWaysToWin(long time, long recordDistance) {
+    // Either of these is fast enough for both parts
+    
+    long getNumberOfWaysToWin(long totalTime, long recordDistance) {
         int ways = 0;
-        for (int i = 0; i < time; i++) {
-            if (diffDistance(i, time, recordDistance) > 0) {
+        for (int i = 0; i < totalTime; i++) {
+            if (diffDistance(i, totalTime, recordDistance) > 0) {
                 ways++;
             }
         }
         return ways;
     }
     
-    long getNumberOfWaysToWin2(long time, long recordDistance) {
+    long getNumberOfWaysToWin2(long totalTime, long recordDistance) {
+        // binary search for first buttonHeldTime that wins, then calculate wins from that
         long lo = 0;
-        long hi = time/2+1;
+        long hi = totalTime/2+1;
         long pos = -1;
         
         while (lo < hi) {
             long mid = lo + (hi - lo) / 2;
-            long cmp = diffDistance(mid, time, recordDistance);
+            long cmp = diffDistance(mid, totalTime, recordDistance);
             if (cmp > 0) {
-                hi = mid;
-                pos = mid;
+                hi = pos = mid;
             } else if (cmp < 0) {
                 lo = mid+1;
             } else {
@@ -68,8 +65,7 @@ public class Day06 {
             }
         }
         
-        // first buttonHeldTime that wins
-        return (time + 1) - (2 * pos); // time=4; 0x 1x 2 3x 4x   time=5; 0x 1 2 3 4 5x
+        return pos < 0 ? 0 : (totalTime + 1) - (2 * pos);
     }
     
     long diffDistance(long buttonHeldTime, long totalTime, long recordDistance) {
