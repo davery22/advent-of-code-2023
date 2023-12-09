@@ -100,7 +100,7 @@ public class Day07 {
             Long::sum
         );
         
-        long highCount = (long) sortedEntries[pos].getValue(); //counts.values().stream().max(Comparator.naturalOrder()).orElseThrow();
+        long highCount = (long) sortedEntries[pos].getValue();
         
         return switch (counts.size()) {
             case 1 -> Type.FIVE_OF_A_KIND;
