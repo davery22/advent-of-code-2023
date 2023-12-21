@@ -45,19 +45,29 @@ public class Day19 {
     void part2(BufferedReader reader) throws IOException {
         Map<String, Workflow> workflowByKey = getWorkflowByKey(reader);
         int[][] partConstraints = new int[][] {
-            { 0, 4001 },
+            { 0, 4001 }, // { greater-than-this, less-than-this }
             { 0, 4001 },
             { 0, 4001 },
             { 0, 4001 }
         };
-        long combos = recurse(partConstraints, workflowByKey, workflowByKey.get("in"), 0);
+        long combos = nextWorkflow(partConstraints, workflowByKey, "in");
         System.out.println(combos);
     }
     
-    long recurse(int[][] partConstraints,
-                 Map<String, Workflow> workflowByKey,
-                 Workflow curr,
-                 int ruleIdx) {
+    long nextWorkflow(int[][] partConstraints, Map<String, Workflow> workflowByKey, String sendTo) {
+        return switch (sendTo) {
+            case "R" -> 0;
+            case "A" -> Arrays.stream(partConstraints)
+                .mapToLong(constraint -> constraint[1] - constraint[0] - 1)
+                .reduce(1L, (a, b) -> a * b);
+            default -> nextRule(partConstraints, workflowByKey, workflowByKey.get(sendTo), 0);
+        };
+    }
+    
+    long nextRule(int[][] partConstraints,
+                  Map<String, Workflow> workflowByKey,
+                  Workflow curr,
+                  int ruleIdx) {
         if (ruleIdx == curr.rules.size()) {
             return nextWorkflow(partConstraints, workflowByKey, curr.sendTo);
         }
@@ -77,31 +87,17 @@ public class Day19 {
         int leftIdx = rule.gt ? 0 : 1, rightIdx = rule.gt ? 1 : 0;
         int left = constraint[leftIdx], right = constraint[rightIdx];
         
-        // One side passes (goto next workflow)
+        // One side passes - goto next workflow
         constraint[leftIdx] = rule.expected;
         sum += nextWorkflow(partConstraints, workflowByKey, rule.sendTo);
         constraint[leftIdx] = left;
         
-        // Other side fails (goto next rule)
+        // Other side fails - goto next rule
         constraint[rightIdx] = rule.expected + (rule.gt ? 1 : -1);
-        sum += recurse(partConstraints, workflowByKey, curr, ruleIdx+1);
+        sum += nextRule(partConstraints, workflowByKey, curr, ruleIdx+1);
         constraint[rightIdx] = right;
         
         return sum;
-    }
-    
-    long nextWorkflow(int[][] partConstraints, Map<String, Workflow> workflowByKey, String sendTo) {
-        return switch (sendTo) {
-            case "R" -> 0;
-            case "A" -> countCombos(partConstraints);
-            default -> recurse(partConstraints, workflowByKey, workflowByKey.get(sendTo), 0);
-        };
-    }
-    
-    long countCombos(int[][] partConstraints) {
-        return Arrays.stream(partConstraints)
-            .mapToLong(constraint -> constraint[1] - constraint[0] - 1)
-            .reduce(1L, (a, b) -> a * b);
     }
     
     Map<String, Workflow> getWorkflowByKey(BufferedReader reader) throws IOException {
