@@ -102,7 +102,7 @@ public class Day24 {
                         }
                     }
                     if (opos != null) {
-                        next[1][0] -= vx; next[1][1] -= vy;
+                        next[1][0] -= vx; next[1][1] -= vy; // Undo cleanup! Need the moving reference frame
                         double t1 = first[1][0] != 0 ? (x1 - first[0][0])/first[1][0] : (y1 - first[0][1])/first[1][1];
                         double t2 = next[1][0] != 0  ? (x1 - next[0][0])/next[1][0]   : (y1 - next[0][1])/next[1][1];
                         double vz = (first[0][2] - next[0][2] + t1*first[1][2] - t2*next[1][2])/(t1 - t2);
